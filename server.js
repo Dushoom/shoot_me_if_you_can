@@ -45,29 +45,38 @@ console.log("created obstacles");
 {
   return x.toString()+","+y.toString();
 }
-
-var count = 0;
+var Pinfo = {};
+var move = 10;
 var clients = {};
 wsServer.on('request', function(r){
 var connection = r.accept('echo-protocol', r.origin)
 console.log (r.remoteAddress +'connected to our server');
-var id = count++;
+var id = convert(connection.remoteAddress,connection.socket._handle.fd);
 clients[id] = connection;
+Pinfo[id] = new player();
 connection.on('message', function(message) {
-var msgString = message.utf8Data;
-console.log("message is"+":"+msgString);
-console.log("message has sent for routing");
-route(connection,msgString); 
-  }
-	);
-	connection.on('close', function(reasonCode, description) {
+  var ui = convert(this.remoteAddress,this.socket._handle.fd);
+  var msgString = message.utf8Data;
+  console.log("message is"+":"+msgString);
+  console.log("message has sent for routing");
+  route(ui,msgString); 
+   }
+);
+connection.on('close', function(reasonCode, description) {
   delete clients[id];
   console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
 	});
 });	
 
-
-function route(connection,message)
+function player()
+{
+  this.position_x = null;
+  this.position_y = null;
+  this.next_position_x =null;
+  this.next_position_y =null;
+  this.arenaCreated = false;
+}
+function route(key,message)
 {
     console.log("got message for routing");
     var method = JSON.parse(message).method;
@@ -75,60 +84,104 @@ function route(connection,message)
     if(method == 'createArena')
     {
       console.log("request routed to send Arena Details");
-      sendArenaDetails(connection);
+      sendArenaDetails(key);
     }
     if(method == 'play')
     {
       console.log("request routed to create Player");
-      createPlayer(connection);
+      createPlayer(key);
       console.log("player has been created , now sending to request to send player position");
-      sendPlayerPosition(connection);
+      sendPlayerPosition(key);
       console.log("Sendin Player positionto other players")
-      sendMessage(connection);
+      sendMessage(key);
       console.log("sending other player details if any")
-      sendOtherPlayersInfo(connection);
-      //console.log("other player info sent");
-
+      sendOtherPlayersInfo(key);
+      console.log("other player info sent");
+    }
+    if(method == 'moveRight')
+    {
+      console.log("player requseted for move");
+      Pinfo[key].next_position_x = Pinfo[key].position_x + move;
+      Pinfo[key].next_position_y = Pinfo[key].position_y ;
+      console.log("player new postion assigned");
+      sendNewPlayerPosition(key);
+      console.log("Player move sent to all the players");
 
     }
+    if(method == 'moveDown')
+    {
+      console.log("player requseted for moveDown");
+      Pinfo[key].next_position_x = Pinfo[key].position_x ;
+      Pinfo[key].next_position_y = Pinfo[key].position_y + move;
+      console.log("player new postion assigned");
+      sendNewPlayerPosition(key);
+      console.log("Player move sent to all the players");
+    }
+    if(method == 'moveLeft')
+    {
+      console.log("player requseted for moveLeft");
+      Pinfo[key].next_position_x = Pinfo[key].position_x - move;
+      Pinfo[key].next_position_y = Pinfo[key].position_y ;
+      console.log("player new postion assigned");
+      sendNewPlayerPosition(key);
+      console.log("Player move sent to all the players");
+    }
+    if(method == 'moveTop')
+    {
+      console.log("player requseted for moveTop");
+      Pinfo[key].next_position_x = Pinfo[key].position_x;
+      Pinfo[key].next_position_y = Pinfo[key].position_y - move;
+      console.log("player new postion assigned");
+      sendNewPlayerPosition(key);
+      console.log("Player move sent to all the players");
+    }
 
-}function sendOtherPlayersInfo(connection)
+}
+function sendNewPlayerPosition(key)
 {
-  var node = arena.joinedPlayersList.get();
   for (var i in clients)
   {
-      message = {'message':'Joined','position':node.data}
-      connection.send(JSON.stringify(message));
-      node = node.next;
-      /*console.log(arena.players[clients[i]].data);
-      message = {'message':'playerJoined','position':arena.players[clients[i]].data};
-      connection.send(JSON.stringify(message));*/
+    
+    message = {'message':'playerMove','current_position_x':Pinfo[key].position_x,'current_position_y':Pinfo[key].position_y,'next_position_x':Pinfo[key].next_position_x,'next_position_y':Pinfo[key].next_position_y};
+    
+    clients[i].send(JSON.stringify(message));
+    //console.log(message);
+
+    Pinfo[key].position_x = Pinfo[key].next_position_x;
+    Pinfo[key].position_y = Pinfo[key].next_position_y;
+  }
+}function sendOtherPlayersInfo(key)
+{
+  for (var i in clients)
+  {
+    if(i != key)
+    {
+      message = {'message':'playerJoined','position_x':Pinfo[i].position_x,'position_y':Pinfo[i].position_y};
+      clients[key].send(JSON.stringify(message));
+    }      
   }
 }
-function sendMessage(connection)
+function sendMessage(key)
 {
       for (var i in clients)
       {
-        if (i != connection)
+        if (i != key)
         {
-            message = {'message':'playerJoined','position':arena.players[connection].data};
+            message = {'message':'playerJoined','position_x':Pinfo[key].position_x,'position_y':Pinfo[key].position_y};
             clients[i].send(JSON.stringify(message));
         }
       }
 }
-function createPlayer(connection)
+function createPlayer(key)
 {
   if (arena.joinedPlayers < 4)
   {
     console.log("About to create player")
-    var player = new Object();
+    var temp = arena.playerPostion.get().data;
+    Pinfo[key].position_x= temp.x;
+    Pinfo[key].position_y= temp.y;
     console.log("player created");
-    player.data = arena.playerPostion.get().data;
-    arena.joinedPlayersList.add(player.data);
-    console.log(arena.joinedPlayersList);
     arena.playerPostion.remove();
-    arena.players[connection] = player;
-    //console.log(arena.players[connection].data);
     console.log("player added to arena");
    }
   else
@@ -136,17 +189,17 @@ function createPlayer(connection)
     console.log("max player reached");
   }
 }
-function sendPlayerPosition(connection)
+function sendPlayerPosition(key)
 {
   console.log("request came for send player position")
-  message = {'message':'playerPosition','position':arena.players[connection].data}
-  connection.send(JSON.stringify(message));  
+  message = {'message':'playerPosition','position_x':Pinfo[key].position_x,'position_y':Pinfo[key].position_y}
+  clients[key].send(JSON.stringify(message));  
 }
-function sendArenaDetails(connection)
+function sendArenaDetails(key)
 {
     console.log("request to send arena details");
     message = {'message':'arenaDetails','width':arena.width,'height':arena.height,'obstacleSize':arena.obstacleWidth,'obstacles':arena.obstacles};
-    connection.send(JSON.stringify(message));
+    clients[key].send(JSON.stringify(message));
     console.log("Arena details sent");
 }
 

@@ -5,6 +5,10 @@
 var Canvas = document.getElementById('arena');
 Canvas.focus();
 var span = document.getElementById('test');
+var red = '#ff0000';
+var white = '#ffffff';
+var black = '#000000';
+var blue ='#0000ff';
 var canvas = Canvas.getContext('2d');
 var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
 	Canvas.onkeypress = function(evt){
@@ -15,10 +19,14 @@ var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
        }
        if (charStr == 'p'){
        	ws.send(JSON.stringify({'method':'play'}));
-       }
-       if (charStr == 'd'){
+       }if (charStr == 'w'){
+       	ws.send(JSON.stringify({'method':'moveTop'}));
+       }if (charStr == 'd'){
        	ws.send(JSON.stringify({'method':'moveRight'}));
-
+       }if (charStr == 'a'){
+       	ws.send(JSON.stringify({'method':'moveLeft'}));
+       }if (charStr == 's'){
+       	ws.send(JSON.stringify({'method':'moveDown'}));
        }
    }
 
@@ -45,15 +53,25 @@ function route(message){
 	{
 		updateArena(message);
 	}
+	if (message.message =='playerMove')
+	{
+
+		updateBattlePlayerPositions(message);		
+	}
+}
+function updateBattlePlayerPositions(message)
+{
+	drawPlayer(canvas,message.current_position_x,message.current_position_y,15,red);
+	drawPlayer(canvas,message.next_position_x,message.next_position_y,15,black)
 }
 function updateArena(message)
 {
 	
-	drawPlayer(canvas,message.position.x,message.position.y,15,'#ff0000');
+	drawPlayer(canvas,message.position_x,message.position_y,15,black);
 }
 function playerPosition(message)
 {
-	drawPlayer(canvas,message.position.x,message.position.y,15,'#ff0000');
+	drawPlayer(canvas,message.position_x,message.position_y,15,black);
 }
 function createArena(message)
 {
