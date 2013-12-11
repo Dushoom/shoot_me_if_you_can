@@ -1,0 +1,102 @@
+<body>
+<canvas id ='arena' tabindex="1" width = '350' height = '350'></canvas>
+<span id ='test'></span>
+<script type="text/javascript">
+var Canvas = document.getElementById('arena');
+Canvas.focus();
+var span = document.getElementById('test');
+var canvas = Canvas.getContext('2d');
+var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
+	Canvas.onkeypress = function(evt){
+    	var charCode = evt.which;
+       var charStr = String.fromCharCode(charCode);
+       if (charStr == 'r'){
+       ws.send(JSON.stringify({'method':'createArena'}));
+       }
+       if (charStr == 'p'){
+       	ws.send(JSON.stringify({'method':'play'}));
+       }
+       if (charStr == 'd'){
+       	ws.send(JSON.stringify({'method':'moveRight'}));
+
+       }
+   }
+
+ws.addEventListener('message', function(e){
+
+	message = JSON.parse(e.data);
+	route(message);
+})
+function route(message){
+
+	if(message.message == "arenaDetails")
+	{
+		createArena(message);
+	}
+	if (message.message == "playerPosition")
+	{
+		playerPosition(message);
+	}
+	if (message.message == 'playerJoined')
+	{
+		updateArena(message);
+	}
+	if (message.message== 'Joined')
+	{
+		updateArena(message);
+	}
+}
+function updateArena(message)
+{
+	
+	drawPlayer(canvas,message.position.x,message.position.y,15,'#ff0000');
+}
+function playerPosition(message)
+{
+	drawPlayer(canvas,message.position.x,message.position.y,15,'#ff0000');
+}
+function createArena(message)
+{
+	draw(canvas,message.width,message.height,0,0);
+	drawObstacles(message)
+}
+function drawObstacles(message) {
+	
+	for (var i in message.obstacles)
+	{
+		draw(canvas,message.obstacleSize,message.obstacleSize,message.obstacles[i].x,message.obstacles[i].y);
+	}
+}
+function convert(x,y)
+{
+	return x.toString()+","+y.toString();
+}
+function drawPlayer(canvas,centreX,centreY,radius,color){
+
+	canvas.beginPath();
+	canvas.arc(centreX,centreY,radius,0,2*Math.PI,false);
+	canvas.fillstyle = color;
+	canvas.fill();
+	canvas.closePath();
+}
+
+
+ function draw(canvas,width,height,X,Y) {
+	
+	canvas.beginPath();
+	canvas.translate(X,Y);
+	canvas.moveTo(0,0);
+	canvas.lineTo(width,0);
+	canvas.lineTo(width,height);
+	canvas.lineTo(0,height);
+	canvas.lineTo(0,0);
+	canvas.closePath();
+	canvas.lineWidth=1;
+	canvas.stroke();
+	canvas.translate(-X,-Y);
+}
+
+</script>
+
+
+</body>

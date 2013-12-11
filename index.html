@@ -1,0 +1,20 @@
+<body>
+<span class = 'test' id = 'test'></span>
+<button onclick = "send()">send</button>
+<script type="text/javascript">
+	var send = function(){
+		ws.send("shoot_10");
+	}
+var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');	
+</script>
+</body>
+<!--
+<script type="text/javascript">
+
+var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
+
+ws.on
+
+
+</script>
+-->
