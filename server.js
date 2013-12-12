@@ -100,16 +100,18 @@ function route(key,message)
     }
     if(method == 'moveRight')
     {
+      if(validateRightMove(key)){
       console.log("player requseted for move");
       Pinfo[key].next_position_x = Pinfo[key].position_x + move;
       Pinfo[key].next_position_y = Pinfo[key].position_y ;
       console.log("player new postion assigned");
       sendNewPlayerPosition(key);
       console.log("Player move sent to all the players");
-
+    }
     }
     if(method == 'moveDown')
     {
+      if(validateDownMove(key)){
       console.log("player requseted for moveDown");
       Pinfo[key].next_position_x = Pinfo[key].position_x ;
       Pinfo[key].next_position_y = Pinfo[key].position_y + move;
@@ -117,8 +119,10 @@ function route(key,message)
       sendNewPlayerPosition(key);
       console.log("Player move sent to all the players");
     }
+    }
     if(method == 'moveLeft')
     {
+      if(validateLeftMove(key)){
       console.log("player requseted for moveLeft");
       Pinfo[key].next_position_x = Pinfo[key].position_x - move;
       Pinfo[key].next_position_y = Pinfo[key].position_y ;
@@ -126,8 +130,10 @@ function route(key,message)
       sendNewPlayerPosition(key);
       console.log("Player move sent to all the players");
     }
+    }
     if(method == 'moveTop')
     {
+      if(validateTopMove(key)){
       console.log("player requseted for moveTop");
       Pinfo[key].next_position_x = Pinfo[key].position_x;
       Pinfo[key].next_position_y = Pinfo[key].position_y - move;
@@ -135,21 +141,59 @@ function route(key,message)
       sendNewPlayerPosition(key);
       console.log("Player move sent to all the players");
     }
+    }
 
+}
+function validateRightMove(key)
+{
+  if((Pinfo[key].position_y % 100 == 25) && Pinfo[key].position_x != arena.width-25)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+function validateLeftMove(key)
+{
+  if((Pinfo[key].position_y % 100 == 25) && Pinfo[key].position_x != 25)
+  {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+function validateTopMove(key)
+{
+  if((Pinfo[key].position_x % 100 == 25) && Pinfo[key].position_y != 25)
+  {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+function validateDownMove(key)
+{
+  if((Pinfo[key].position_x % 100 == 25) && Pinfo[key].position_y != arena.height -25)
+  {
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 function sendNewPlayerPosition(key)
 {
   for (var i in clients)
-  {
-    
+  {  
     message = {'message':'playerMove','current_position_x':Pinfo[key].position_x,'current_position_y':Pinfo[key].position_y,'next_position_x':Pinfo[key].next_position_x,'next_position_y':Pinfo[key].next_position_y};
-    
-    clients[i].send(JSON.stringify(message));
-    //console.log(message);
-
-    Pinfo[key].position_x = Pinfo[key].next_position_x;
-    Pinfo[key].position_y = Pinfo[key].next_position_y;
+    clients[i].send(JSON.stringify(message));  
   }
+  Pinfo[key].position_x = Pinfo[key].next_position_x;
+  Pinfo[key].position_y = Pinfo[key].next_position_y;
 }function sendOtherPlayersInfo(key)
 {
   for (var i in clients)

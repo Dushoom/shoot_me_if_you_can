@@ -5,8 +5,8 @@
 var Canvas = document.getElementById('arena');
 Canvas.focus();
 var span = document.getElementById('test');
-var red = '#ff0000';
-var white = '#ffffff';
+var red = '#FF0000';
+var white = '#FFFFFF';
 var black = '#000000';
 var blue ='#0000ff';
 var canvas = Canvas.getContext('2d');
@@ -61,17 +61,23 @@ function route(message){
 }
 function updateBattlePlayerPositions(message)
 {
-	drawPlayer(canvas,message.current_position_x,message.current_position_y,15,red);
-	drawPlayer(canvas,message.next_position_x,message.next_position_y,15,black)
+
+	drawPlayer(canvas,message.current_position_x,message.current_position_y,16,white);
+	drawPlayer(canvas,message.next_position_x,message.next_position_y,15,red);
+	
+}
+function animateCircle()
+{
+	
 }
 function updateArena(message)
 {
 	
-	drawPlayer(canvas,message.position_x,message.position_y,15,black);
+	drawPlayer(canvas,message.position_x,message.position_y,15,red);
 }
 function playerPosition(message)
 {
-	drawPlayer(canvas,message.position_x,message.position_y,15,black);
+	drawPlayer(canvas,message.position_x,message.position_y,15,red);
 }
 function createArena(message)
 {
@@ -93,7 +99,7 @@ function drawPlayer(canvas,centreX,centreY,radius,color){
 
 	canvas.beginPath();
 	canvas.arc(centreX,centreY,radius,0,2*Math.PI,false);
-	canvas.fillstyle = color;
+	canvas.fillStyle = color;
 	canvas.fill();
 	canvas.closePath();
 }
