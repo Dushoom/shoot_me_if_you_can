@@ -28,9 +28,48 @@ arena.playerPostion.add({x:25,y:25});
 arena.playerPostion.add({x:arena.width-25,y:25})
 arena.playerPostion.add({x:25,y:arena.height-25});
 arena.playerPostion.add({x:arena.width-25,y:arena.height-25});
+arena.bullets = {};
+arena.playerRadius = 15;
+arena.numberOfBullets = 0;
 console.log("about to create obstacles");
 createObstacles(arena);
 console.log("created obstacles");
+var SB = setInterval(function(){sendBulletsToPlayers()},100);
+function sendBulletsToPlayers()
+{
+  if(arena.numberOfBullets != 0)
+  {
+    message = {'message':'bulletInfo','bullets':arena.bullets}
+    sendBulletsInfoToPlayers(message);
+    updateBulletPositions()    
+  }   
+}
+function updateBulletPositions()
+{
+  {
+    for (var i in arena.bullets)
+    {
+      switch(arena.bullets[i].type)
+      {
+          case 'right':
+          arena.bullets[i].previousPosition_x = arena.bullets[i].position_x;
+          arena.bullets[i].position_x +=5;
+          break;
+          case 'left':
+          arena.bullets[i].previousPosition_x = arena.bullets[i].position_x;
+          arena.bullets[i].position_x -=5;
+          break;
+          case 'top':
+          arena.bullets[i].previousPosition_y = arena.bullets[i].position_y;
+          arena.bullets[i].position_y -=5;
+          break;
+          default:
+          arena.bullets[i].previousPosition_y = arena.bullets[i].position_y;
+          arena.bullets[i].position_y +=5;
+      }        
+    }
+  }
+}
  function createObstacles(arena)
  {
     for(var i = arena.obstacleWidth ; i < arena.width ; i = i + (2*arena.obstacleWidth))
@@ -67,7 +106,14 @@ connection.on('close', function(reasonCode, description) {
   console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
 	});
 });	
-
+function bullet()
+{
+  this.position_x = null;
+  this.position_y = null;
+  this.previousPosition_x = null;
+  this.priviousPosition_y = null;
+  this.type = null;
+}
 function player()
 {
   this.position_x = null;
@@ -75,6 +121,7 @@ function player()
   this.next_position_x =null;
   this.next_position_y =null;
   this.arenaCreated = false;
+  this.noOfBulletsFired = null;
 }
 function route(key,message)
 {
@@ -98,6 +145,13 @@ function route(key,message)
       sendOtherPlayersInfo(key);
       console.log("other player info sent");
     }
+    /*if (method == 'moveRight' || method == 'moveLeft' || method == 'moveDown' || method == 'moveTop')
+    {
+      switch(message)
+      {
+        case 'moveRight':
+      }
+    }*/
     if(method == 'moveRight')
     {
       if(validateRightMove(key)){
@@ -141,6 +195,70 @@ function route(key,message)
       sendNewPlayerPosition(key);
       console.log("Player move sent to all the players");
     }
+    }
+    if(method  == 'shootRight')
+    {
+      if(validateRightMove(key))
+      {
+        console.log("player shot right");
+        Pinfo[key].noOfBulletsFired ++;
+        arena.numberOfBullets++;
+        var B = new bullet();
+        B.position_x= Pinfo[key].position_x+16;
+        B.position_y = Pinfo[key].position_y;
+        B.previousPosition_x = B.position_x;
+        B.previousPosition_y = B.position_y;
+        B.type = 'right';
+        arena.bullets[convert(key,Pinfo[key].noOfBulletsFired)] = B;        
+      }
+    }
+    if(method  == 'shootLeft')
+    {
+      if(validateLeftMove(key))
+      {
+        console.log("player shot left");
+        Pinfo[key].noOfBulletsFired ++;
+        arena.numberOfBullets++;
+        var B = new bullet();
+        B.position_x= Pinfo[key].position_x-16;
+        B.position_y = Pinfo[key].position_y;
+        B.previousPosition_x = B.position_x;
+        B.previousPosition_y = B.position_y;
+        B.type = 'left';
+        arena.bullets[convert(key,Pinfo[key].noOfBulletsFired)] = B;        
+      }
+    }
+    if(method  == 'shootTop')
+    {
+      if(validateTopMove(key))
+      {
+        console.log("player shot Top");
+        Pinfo[key].noOfBulletsFired ++;
+        arena.numberOfBullets++;
+        var B = new bullet();
+        B.position_x= Pinfo[key].position_x;
+        B.position_y = Pinfo[key].position_y-16;
+        B.previousPosition_x = B.position_x;
+        B.previousPosition_y = B.position_y;
+        B.type = 'top';
+        arena.bullets[convert(key,Pinfo[key].noOfBulletsFired)] = B;        
+      }
+    }
+    if(method  == 'shootDown')
+    {
+      if(validateDownMove(key))
+      {
+        console.log("player shot Down");
+        Pinfo[key].noOfBulletsFired ++;
+        arena.numberOfBullets++;
+        var B = new bullet();
+        B.position_x= Pinfo[key].position_x;
+        B.position_y = Pinfo[key].position_y+16;
+        B.previousPosition_x = B.position_x;
+        B.previousPosition_y = B.position_y;
+        B.type = 'down';
+        arena.bullets[convert(key,Pinfo[key].noOfBulletsFired)] = B;        
+      }
     }
 
 }
@@ -194,7 +312,16 @@ function sendNewPlayerPosition(key)
   }
   Pinfo[key].position_x = Pinfo[key].next_position_x;
   Pinfo[key].position_y = Pinfo[key].next_position_y;
-}function sendOtherPlayersInfo(key)
+}
+function sendBulletsInfoToPlayers(message)
+{
+  for (var i in clients)
+  {
+          
+      clients[i].send(JSON.stringify(message));         
+  }
+}
+function sendOtherPlayersInfo(key)
 {
   for (var i in clients)
   {

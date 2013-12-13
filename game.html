@@ -10,23 +10,37 @@ var white = '#FFFFFF';
 var black = '#000000';
 var blue ='#0000ff';
 var canvas = Canvas.getContext('2d');
+var blackWidht = 1;
+var whiteWidht = 2;
 var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
-	Canvas.onkeypress = function(evt){
+	Canvas.onkeydown = function(evt){
+
     	var charCode = evt.which;
+
        var charStr = String.fromCharCode(charCode);
-       if (charStr == 'r'){
+       document.getElementById('test').innerHTML = charStr;
+       if (charStr == 'R'){
        ws.send(JSON.stringify({'method':'createArena'}));
        }
-       if (charStr == 'p'){
+       if (charStr == 'P'){
        	ws.send(JSON.stringify({'method':'play'}));
-       }if (charStr == 'w'){
+       }if (charStr == 'W'){
        	ws.send(JSON.stringify({'method':'moveTop'}));
-       }if (charStr == 'd'){
+       }if (charStr == 'D'){
        	ws.send(JSON.stringify({'method':'moveRight'}));
-       }if (charStr == 'a'){
+       }if (charStr == 'A'){
        	ws.send(JSON.stringify({'method':'moveLeft'}));
-       }if (charStr == 's'){
+       }if (charStr == 'S'){
        	ws.send(JSON.stringify({'method':'moveDown'}));
+       }if (charCode == 37){//left
+       	ws.send(JSON.stringify({'method':'shootLeft'}));
+       }
+       if (charCode == 38){//up
+       	ws.send(JSON.stringify({'method':'shootTop'}));
+       }if (charCode == 39){//right
+       	ws.send(JSON.stringify({'method':'shootRight'}));
+       }if (charCode == 40){//down
+       	ws.send(JSON.stringify({'method':'shootDown'}));
        }
    }
 
@@ -58,7 +72,32 @@ function route(message){
 
 		updateBattlePlayerPositions(message);		
 	}
+	if (message.message == 'bulletInfo')
+	{
+		for (var i in message.bullets)
+		{
+			switch(message.bullets[i].type)
+			{
+				case 'right':
+					draw(canvas,5,0,message.bullets[i].previousPosition_x,message.bullets[i].previousPosition_y,white,whiteWidht);
+					draw(canvas,5,0,message.bullets[i].position_x,message.bullets[i].position_y,black,blackWidht);
+				break;
+				case 'left':
+					draw(canvas,-5,0,message.bullets[i].previousPosition_x,message.bullets[i].previousPosition_y,white,whiteWidht);
+					draw(canvas,-5,0,message.bullets[i].position_x,message.bullets[i].position_y,black,blackWidht);
+				break;
+				case 'top':
+					draw(canvas,0,-5,message.bullets[i].previousPosition_x,message.bullets[i].previousPosition_y,white,whiteWidht);
+					draw(canvas,0,-5,message.bullets[i].position_x,message.bullets[i].position_y,black,blackWidht);
+				break;
+				default:
+					draw(canvas,0,5,message.bullets[i].previousPosition_x,message.bullets[i].previousPosition_y,white,whiteWidht);
+					draw(canvas,0,5,message.bullets[i].position_x,message.bullets[i].position_y,black,blackWidht);
+			}
+		}
+	}
 }
+
 function updateBattlePlayerPositions(message)
 {
 
@@ -81,14 +120,14 @@ function playerPosition(message)
 }
 function createArena(message)
 {
-	draw(canvas,message.width,message.height,0,0);
+	draw(canvas,message.width,message.height,0,0,black,blackWidht);
 	drawObstacles(message)
 }
 function drawObstacles(message) {
 	
 	for (var i in message.obstacles)
 	{
-		draw(canvas,message.obstacleSize,message.obstacleSize,message.obstacles[i].x,message.obstacles[i].y);
+		draw(canvas,message.obstacleSize,message.obstacleSize,message.obstacles[i].x,message.obstacles[i].y,black,blackWidht);
 	}
 }
 function convert(x,y)
@@ -105,7 +144,7 @@ function drawPlayer(canvas,centreX,centreY,radius,color){
 }
 
 
- function draw(canvas,width,height,X,Y) {
+ function draw(canvas,width,height,X,Y,Z,W) {
 	
 	canvas.beginPath();
 	canvas.translate(X,Y);
@@ -115,7 +154,8 @@ function drawPlayer(canvas,centreX,centreY,radius,color){
 	canvas.lineTo(0,height);
 	canvas.lineTo(0,0);
 	canvas.closePath();
-	canvas.lineWidth=1;
+	canvas.lineWidth=W;
+	canvas.strokeStyle = Z;
 	canvas.stroke();
 	canvas.translate(-X,-Y);
 }
