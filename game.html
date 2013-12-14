@@ -1,6 +1,24 @@
 <body>
+<style type="text/css">
+	.stack {
+		height: 400px;
+		overflow: auto;
+		width: 200px;
+		float: left;
+		margin: 5px;
+		padding: 10px 0px 10px 10px;
+	}
+	.message {
+		background-color: #B2BFD1;
+		padding: 3px;
+	}
+	#arena {
+		float: left;
+	}
+</style>
 <canvas id ='arena' tabindex="1" width = '350' height = '350'></canvas>
 <span id ='test'></span>
+<div id="messagestack" class="stack"></div>
 <script type="text/javascript">
 var Canvas = document.getElementById('arena');
 Canvas.focus();
@@ -81,6 +99,18 @@ ws.addEventListener('message', function(e){
 
 	message = JSON.parse(e.data);
 	route(message);
+	console.log(message);
+
+	var msgStack = document.querySelectorAll('#messagestack');
+
+	msgStack = msgStack.length && msgStack[0];
+
+	var newMessage = document.createElement('div');
+	newMessage.className ='message';
+	newMessage.innerHTML = message.message;
+
+	msgStack.appendChild(newMessage, msgStack.firstChild);
+
 })
 function route(message){
 
