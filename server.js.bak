@@ -12,6 +12,7 @@ httpServer : server
 });
 
 console.log("arena created");
+
 var arena = new Object();
 arena.width = 350;
 arena.height = 350;
@@ -40,10 +41,10 @@ function startTheBattle()
 {
   if(arena.battlingSoldiers == arena.maximumSoldiers)
   {
-    for ( var i in battleSoldiers)
+    for ( var i in soldiers)
     {
       message ={'message':'letTheBattleBegin'};
-      battleSoldiers[i].send(JSON.stringify(message));
+      soldiers[i].send(JSON.stringify(message));
     }
     clearInterval(Battle);
   }
@@ -102,7 +103,6 @@ var move = 10;
 var clients = {};
 var checkingBattleGround = {};
 var soldiers = {};
-var battleSoldiers = {};
 wsServer.on('request', function(r){
 var connection = r.accept('echo-protocol', r.origin)
 console.log (r.remoteAddress +'connected to our Arena');
@@ -158,7 +158,6 @@ function route(key,message)
         {
           console.log("request routed to join a soldier");
           soldiers[key] = new player();
-          battleSoldiers[key] = checkingBattleGround[key];
           createPlayer(key);
           arena.battlingSoldiers ++;
           soldierJoined(key);
@@ -326,20 +325,20 @@ function soldierJoined(key)
 }
 function sendNewPlayerPosition(key)
 {
-  for (var i in battleSoldiers)
+  for (var i in soldiers)
   {  
     message = {'message':'playerMove','current_position_x':soldiers[key].position_x,'current_position_y':soldiers[key].position_y,'next_position_x':soldiers[key].next_position_x,'next_position_y':soldiers[key].next_position_y};
-    battleSoldiers[i].send(JSON.stringify(message));  
+    soldiers[i].send(JSON.stringify(message));  
   }
   soldiers[key].position_x = soldiers[key].next_position_x;
   soldiers[key].position_y = soldiers[key].next_position_y;
 }
 function sendBulletsInfoToPlayers(message)
 {
-  for (var i in battleSoldiers)
+  for (var i in soldiers)
   {
           
-      battleSoldiers[i].send(JSON.stringify(message));         
+      soldiers[i].send(JSON.stringify(message));         
   }
 }
 function createPlayer(key)
