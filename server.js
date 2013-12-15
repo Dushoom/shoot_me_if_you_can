@@ -20,6 +20,7 @@ arena.obstacleHeight = 50;
 arena.obstacles = {};
 arena.maximumSoldiers = 4;
 arena.battlingSoldiers = 0;
+arena.maximumBullets = 5;
 arena.players ={};
 arena.playerPostion = new playerPostion();
 arena.battlingSoldiersList = new playerPostion();
@@ -61,23 +62,56 @@ function updateBulletPositions()
   {
     for (var i in arena.bullets)
     {
+      
       switch(arena.bullets[i].type)
       {
-          case 'right':
+        case 'right':
+        console.log(arena.bullets[i]);
+        if( arena.bullets[i].position_x < 345)
+        {
           arena.bullets[i].previousPosition_x = arena.bullets[i].position_x;
           arena.bullets[i].position_x +=5;
+        }else
+        {
+          soldiers[arena.bullets[i].soldier].noOfBulletsFired--;
+          delete arena.bullets[i];
+        }
           break;
-          case 'left':
+        case 'left':
+        if (arena.bullets[i].position_x > 5) 
+        {
           arena.bullets[i].previousPosition_x = arena.bullets[i].position_x;
           arena.bullets[i].position_x -=5;
+        }
+        else
+        {
+          soldiers[arena.bullets[i].soldier].noOfBulletsFired--;
+          delete arena.bullets[i];
+        }
           break;
-          case 'top':
+        case 'top':
+        if(arena.bullets[i].position_y > 5) 
+        {
           arena.bullets[i].previousPosition_y = arena.bullets[i].position_y;
           arena.bullets[i].position_y -=5;
+        }
+        else
+        {
+          soldiers[arena.bullets[i].soldier].noOfBulletsFired--;
+          delete arena.bullets[i];
+        }
           break;
-          default:
+        default:
+        if(arena.bullets[i].position_y < 345)
+        {
           arena.bullets[i].previousPosition_y = arena.bullets[i].position_y;
           arena.bullets[i].position_y +=5;
+        }
+        else
+        {
+          soldiers[arena.bullets[i].soldier].noOfBulletsFired--;
+          delete arena.bullets[i];
+        }
       }        
     }
   }
@@ -128,6 +162,7 @@ function bullet()
   this.previousPosition_x = null;
   this.previousPosition_y = null;
   this.type = null;
+  this.soldier = null;
 
 }
 function player()
@@ -210,7 +245,7 @@ function route(key,message)
     }
     if(method  == 'shootRight')
     {
-      if(validateRightMove(key))
+      if(validateRightMove(key) && (soldiers[key].noOfBulletsFired < arena.maximumBullets))
       {
         console.log("player shot right");
         soldiers[key].noOfBulletsFired ++;
@@ -221,13 +256,14 @@ function route(key,message)
         B.previousPosition_x = B.position_x;
         B.previousPosition_y = B.position_y;
         B.type = 'right';
-        B.key = convert(key,soldiers[key].noOfBulletsFired);
+        B.soldier = key;
+        B.key = convert(key,arena.numberOfBullets);
         message = {'message':'bulletInfo','bullet':B};
         sendMessageToAllBattleSoldiers(message);
-        arena.bullets[convert(key,soldiers[key].noOfBulletsFired)] = B;        
+        arena.bullets[convert(key,arena.numberOfBullets)] = B;        
       }
     }
-    if(method  == 'shootLeft')
+    if(method  == 'shootLeft' && (soldiers[key].noOfBulletsFired < arena.maximumBullets))
     {
       if(validateLeftMove(key))
       {
@@ -240,13 +276,14 @@ function route(key,message)
         B.previousPosition_x = B.position_x;
         B.previousPosition_y = B.position_y;
         B.type = 'left';
-        B.key = convert(key,soldiers[key].noOfBulletsFired);
+        B.soldier = key;
+        B.key = convert(key,arena.numberOfBullets);
         message = {'message':'bulletInfo','bullet':B};
         sendMessageToAllBattleSoldiers(message);
-        arena.bullets[convert(key,soldiers[key].noOfBulletsFired)] = B;        
+        arena.bullets[convert(key,arena.numberOfBullets)] = B;        
       }
     }
-    if(method  == 'shootTop')
+    if(method  == 'shootTop' && (soldiers[key].noOfBulletsFired < arena.maximumBullets))
     {
       if(validateTopMove(key))
       {
@@ -259,13 +296,14 @@ function route(key,message)
         B.previousPosition_x = B.position_x;
         B.previousPosition_y = B.position_y;
         B.type = 'top';
-        B.key = convert(key,soldiers[key].noOfBulletsFired);
+        B.soldier = key;
+        B.key = convert(key,arena.numberOfBullets);
         message = {'message':'bulletInfo','bullet':B};
         sendMessageToAllBattleSoldiers(message);
-        arena.bullets[convert(key,soldiers[key].noOfBulletsFired)] = B;        
+        arena.bullets[convert(key,arena.numberOfBullets)] = B;        
       }
     }
-    if(method  == 'shootDown')
+    if(method  == 'shootDown' && (soldiers[key].noOfBulletsFired < arena.maximumBullets))
     {
       if(validateDownMove(key))
       {
@@ -278,10 +316,11 @@ function route(key,message)
         B.previousPosition_x = B.position_x;
         B.previousPosition_y = B.position_y;
         B.type = 'down';
-        B.key = convert(key,soldiers[key].noOfBulletsFired);
+        B.soldier = key;
+        B.key = convert(key,arena.numberOfBullets);
         message = {'message':'bulletInfo','bullet':B};
         sendMessageToAllBattleSoldiers(message);
-        arena.bullets[convert(key,soldiers[key].noOfBulletsFired)] = B;        
+        arena.bullets[convert(key,arena.numberOfBullets)] = B;        
       }
     }
 
