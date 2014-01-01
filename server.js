@@ -48,15 +48,6 @@ function startTheBattle()
     SB = setInterval(function(){updateBulletPositions()},60);
   }
 }
-function sendBulletsToPlayers()
-{
-  if(arena.numberOfBullets != 0)
-  {
-    message = {'message':'bulletInfo','bullets':arena.bullets}
-    sendBulletsInfoToPlayers(message);
-    updateBulletPositions()    ;
-  }   
-}
 function updateBulletPositions()
 {
   {
@@ -131,7 +122,7 @@ function updateBulletPositions()
   return x.toString()+","+y.toString();
 }
 var soldiers = {};
-var move = 10;
+var move = 25;
 var clients = {};
 var checkingBattleGround = {};
 var soldiers = {};
@@ -387,6 +378,7 @@ function sendNewPlayerPosition(key)
   {  
     message = {'message':'playerMove','current_position_x':soldiers[key].position_x,'current_position_y':soldiers[key].position_y,'next_position_x':soldiers[key].next_position_x,'next_position_y':soldiers[key].next_position_y};
     battleSoldiers[i].send(JSON.stringify(message));  
+    console.log(message);
   }
   soldiers[key].position_x = soldiers[key].next_position_x;
   soldiers[key].position_y = soldiers[key].next_position_y;

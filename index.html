@@ -1,20 +1,616 @@
-<body>
-<span class = 'test' id = 'test'></span>
-<button onclick = "send()">send</button>
-<script type="text/javascript">
-	var send = function(){
-		ws.send("shoot_10");
+<html>
+<head>
+<title>Dushoom!!</title>
+	<style>
+	canvas.maze	
+	{
+		position: absolute;
+		top: 25px;
+		left: 250px;
+		
 	}
-var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');	
+	span.score
+	{
+		position: absolute;
+		top: 25px;
+		left: 150px;
+	}
+	span.score1
+	{
+		position: absolute;
+		top: 25px;
+		left: 850px;
+	}
+	</style>
+	
+</head>
+<body>
+<span class="score" id="score" type="score">0</span>
+<span class="score1" id="score1" type="score">0</span>
+<canvas class = "maze" tabindex="1" id = "maze" height="500" width="500"></canvas>
+<script>
+
+canvas = document.getElementById('maze');
+canvas.focus();
+maze = canvas.getContext('2d');
+var gridWidth = 500;
+var gridHeight = 500;
+var blockSize = 50;
+var map = {};
+var map1 = {};
+var coordinates = {};
+var frontier = {};
+var aliens = {};
+var coordinatescount = 0;
+var frontierCount = 0;
+var points = {};
+var red = '#ff0000';
+var white = 'ffffff';
+var black = '000000';
+var blue ='#0000ff';
+
+var playerRadius = 15;
+var whiteRadius =16;
+var alienRadius = 10;
+var alienCount =0;
+var numberOfThreeEdgedPoints = 0;
+var numberOfTwoEdgedPoints =0 ;
+var total = (gridWidth/50) * (gridHeight/50);
+drawGrid(maze,gridWidth,gridHeight,blockSize);
+createMaze();
+var Player1 = new Object();
+Player1.centreX = 25;
+Player1.centreY = 25;
+Player1.score = 0;
+circle (Player1.centreX,Player1.centreY,red,playerRadius);
+var Player2 = new Object();
+Player2.centreX = 475;
+Player2.centreY = 25;
+Player2.score = 0;
+circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+noOfTwoAndThreeEdgedPoints();
+
+score.innerHTML = numberOfThreeEdgedPoints;
+
+canvas.onkeypress = function(evt){
+
+ 	  	 var charCode = evt.which;
+       var charStr = String.fromCharCode(charCode);
+       if (charStr == 's')
+       { 
+       	var a = Player1.centreX;
+       	var b = Player1.centreY;
+        var c= (a).toString()+","+(b+25).toString();
+        	
+       	if( c in points)
+       	{
+       	 	circle (Player1.centreX,Player1.centreY,white,whiteRadius);
+       	 	Player1.centreY = Player1.centreY+50;
+       	 	circle (Player1.centreX,Player1.centreY,red,playerRadius);
+       	 	if(check(Player1.centreX,Player1.centreY,aliens))
+       	 	{
+       	 			delete aliens[convert(Player1.centreX,Player1.centreY)];
+       	 			alienCount--;
+       	 			Player1.score++;
+       	 			score.innerHTML = Player1.score;
+       	 	}
+        }
+       }      
+       if (charStr == 'a')
+       {
+       	var a = Player1.centreX;
+       	var b = Player1.centreY;
+        var c= (a-25).toString()+","+(b).toString();
+        
+       	if( c in points)
+       	{
+       	 	circle (Player1.centreX,Player1.centreY,white,whiteRadius);
+       	 	Player1.centreX = Player1.centreX-50;
+       	 	circle (Player1.centreX,Player1.centreY,red,playerRadius);
+       	 	if(check(Player1.centreX,Player1.centreY,aliens))
+       	 	{
+       	 			delete aliens[convert(Player1.centreX,Player1.centreY)];
+       	 			alienCount--;
+       	 			Player1.score++;
+       	 			score.innerHTML = Player1.score;
+       	 	}
+        }
+       }
+       if (charStr == 'd')
+       {
+       	var a = Player1.centreX;
+       	var b = Player1.centreY;
+       	var c= (a+25).toString()+","+(b).toString();
+        
+       	if( c in points)
+       	{
+       	 	circle (Player1.centreX,Player1.centreY,white,whiteRadius);
+       	 	Player1.centreX = Player1.centreX+50;
+       	 	circle (Player1.centreX,Player1.centreY,red,playerRadius);
+       	 	if(check(Player1.centreX,Player1.centreY,aliens))
+       	 	{
+       	 			delete aliens[convert(Player1.centreX,Player1.centreY)];
+       	 			alienCount--;
+       	 			Player1.score++;
+       	 			score.innerHTML = Player1.score;
+       	 	}
+        }
+       }
+       if (charStr == 'w')
+		 {
+		 	var a = Player1.centreX;
+       		var b = Player1.centreY;
+        	var c= (a).toString()+","+(b-25).toString();
+        
+       	if( c in points)
+       	{
+       	 	circle (Player1.centreX,Player1.centreY,white,whiteRadius);
+       	 	Player1.centreY = Player1.centreY-50;
+       	 	circle (Player1.centreX,Player1.centreY,red,playerRadius);
+       	 	if(check(Player1.centreX,Player1.centreY,aliens))
+       	 	{
+       	 			delete aliens[convert(Player1.centreX,Player1.centreY)];
+       	 			alienCount--;
+       	 			Player1.score++;
+       	 			score.innerHTML = Player1.score;
+       	 	}
+        }
+		 }
+		 if (charStr == 'j')
+       {
+       	var a = Player2.centreX;
+       	var b = Player2.centreY;
+        var c= (a-25).toString()+","+(b).toString();
+        
+       	if( c in points)
+       	{
+       	 	circle (Player2.centreX,Player2.centreY,white,whiteRadius);
+       	 	Player2.centreX = Player2.centreX-50;
+       	 	circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+       	 	if(check(Player2.centreX,Player2.centreY,aliens))
+       	 	{
+       	 			delete aliens[convert(Player2.centreX,Player2.centreY)];
+       	 			alienCount--;
+       	 			Player2.score++;
+       	 			score1.innerHTML = Player2.score;
+       	 	}
+        }
+        	
+       }
+       if (charStr == 'k')
+       { 
+       	var a = Player2.centreX;
+       	var b = Player2.centreY;
+        var c= (a).toString()+","+(b+25).toString();
+        	
+       	if( c in points)
+       	{
+       	 	circle (Player2.centreX,Player2.centreY,white,whiteRadius);
+       	 	Player2.centreY = Player2.centreY+50;
+       	 	circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+       	 	if(check(Player2.centreX,Player2.centreY,aliens))
+       	 	{
+       	 			delete aliens[convert(Player2.centreX,Player2.centreY)];
+       	 			alienCount--;
+       	 			Player2.score++;
+       	 			score1.innerHTML = Player2.score;
+       	 	}
+        }
+       }     
+       if (charStr == 'i')
+		 {
+		 	var a = Player2.centreX;
+       		var b = Player2.centreY;
+        	var c= (a).toString()+","+(b-25).toString();
+        
+      	 if( c in points)
+     		{
+       		circle (Player2.centreX,Player2.centreY,white,whiteRadius);
+       	 	Player2.centreY = Player2.centreY-50;
+       	 	circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+       	 	if(check(Player2.centreX,Player2.centreY,aliens))
+       	 	{
+       	 			delete aliens[convert(Player2.centreX,Player2.centreY)];
+       	 			alienCount--;
+       	 			Player2.score++;
+       	 			score1.innerHTML = Player2.score;
+       	 	}
+        }
+	 } 
+		 if (charStr == 'l')
+       {
+       	var a = Player2.centreX;
+       	var b = Player2.centreY;
+        	var c= (a+25).toString()+","+(b).toString();
+        
+       if( c in points)
+       	{
+       	 	circle (Player2.centreX,Player2.centreY,white,whiteRadius);
+       	 	Player2.centreX = Player2.centreX+50;
+       	 	circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+       	 	if(check(Player2.centreX,Player2.centreY,aliens))
+       	 	{
+       	 			delete aliens[convert(Player2.centreX,Player2.centreY)];
+       	 			alienCount--;
+       	 			Player2.score++;
+       	 			score1.innerHTML = Player2.score;
+       	 	}
+        	}
+       }
+		 if(alienCount == 0)
+		 {
+		 	if (Player1.score > Player2.score)
+		 	{alert("Godlike!!! RED");}
+		 	else{alert("Godlike!!! Blue");}
+		 	window.location = window.location;
+		 }
+};
+function noOfTwoAndThreeEdgedPoints()
+{
+	for (var i = 25 ;i <= 475 ; i = i+50)
+	{		
+		for(var j = 25; j <= 475 ; j = j+50)
+		{
+			if( ( !check(i+25,j,points) || !check(i,j-25,points) ) && ( !check(i-25,j,points) && !check(i,j+25,points)) ||  (( !check(i+25,j,points) && !check(i,j-25,points)) && ( 	!check(i-25,j,points) || !check (i,j+25,points)))) 
+			{
+				
+				if((i != 25 || j!= 25) && (i!=475 || j!=25))					
+				{
+					circle(i,j,black,alienRadius);
+					alienCount++;				
+					aliens[convert(i,j)]= {x:i,y:j};
+				}
+			}	
+		}
+	}
+}
+function convert(x,y)
+{
+	return x.toString()+","+y.toString();
+}
+function createMaze()
+{
+	var b;
+	var c;
+	var a;
+	var randomX = 50*Math.floor(Math.random()*10)+25;
+	var randomY = 50*Math.floor(Math.random()*10)+25; 
+	insertCoordinates(randomX,randomY);
+	updateFrontier(randomX,randomY);
+	while (frontierCount != 0)
+	{
+	b = map1[Math.floor((Math.random()*(new Date().getMilliseconds()))%frontierCount)];
+	a = frontier[b];
+	c = getCoordinate(a);
+	insertCoordinates(a.x,a.y);
+	removeFrontier(a,c);
+	noName(b);
+	updateFrontier(a.x,a.y);
+	}
+}
+function circle(x,y,z,r)
+{
+maze.beginPath();
+maze.arc(x,y,r,0,2*Math.PI,false);
+maze.fillStyle = z;
+maze.fill();
+maze.closePath();
+}
+function noName(x)
+{
+	var i = 0;
+	while (map1[i] != x)
+	{
+		i++;
+		
+	}
+	var a = i;
+	
+	for (var j= i ; i < frontierCount-1 ;i ++)
+	{
+		map1[i] = map1[i+1];
+	}
+	delete map1[i]
+	delete frontier[x];
+	frontierCount--;
+	
+}
+function getCoordinate(x)
+{
+	
+	if (x.x !=25 && check(x.x - 50,x.y,coordinates))
+	{
+		
+		return coordinates[(x.x-50).toString()+","+x.y.toString()]
+	}
+	if (x.x != 475 && check(x.x + 50,x.y,coordinates))
+	{
+		
+		return coordinates[(x.x+50).toString()+","+x.y.toString()]
+	}
+	if (x.y !=25 && check(x.x,(x.y - 50),coordinates))
+	{
+		
+		return coordinates[(x.x).toString()+","+(x.y-50).toString()]
+	} 
+	if (x.y !=475 && check(x.x,(x.y + 50),coordinates))
+	{
+		
+		return coordinates[(x.x).toString()+","+(x.y+50).toString()]
+	}
+
+}
+function removeFrontier(x,y)
+{
+	//score1.innerHTML = map[0];
+	if (x.x - y.x > 0)
+	{
+		//score.innerHTML = "right";
+		var c = (x.x+y.x)/2;
+		var d = (x.y+y.y)/2;		
+		points[c.toString()+","+d.toString()] = {x:c,y:d};
+		maze.beginPath();
+		maze.moveTo(c,d-24);
+		maze.lineTo(c,d+24);
+		maze.closePath();	
+		maze.lineWidth=2;
+		maze.strokeStyle = '#ffffff';
+		maze.stroke();
+	}else
+	if (x.x - y.x < 0)
+	{
+		//score.innerHTML = "left"
+		var c = (x.x+y.x)/2;
+		var d = (x.y+y.y)/2;		
+		points[c.toString()+","+d.toString()] = {x:c,y:d};
+		maze.beginPath();
+		maze.moveTo(c,d-24);
+		maze.lineTo(c,d+24);
+		maze.closePath();	
+		maze.lineWidth=2;
+		maze.strokeStyle = '#ffffff';
+		maze.stroke();
+	}else
+	if (x.x - y.x == 0)
+	{
+		if (x.y - y.y > 0)
+	{
+		//score.innerHTML = "down";
+		var c = (x.x+y.x)/2;
+		var d = (x.y+y.y)/2;		
+		points[c.toString()+","+d.toString()] = {x:c,y:d};
+		maze.beginPath();
+		maze.moveTo(c-24,d);
+		maze.lineTo(c+24,d);
+		maze.closePath();	
+		maze.lineWidth=2;
+		maze.strokeStyle = '#ffffff';
+		maze.stroke();		
+	}else
+	if (x.y - y.y < 0)
+	{
+		//score.innerHTML = "top"
+		var c = (x.x+y.x)/2;
+		var d = (x.y+y.y)/2;		
+		points[c.toString()+","+d.toString()] = {x:c,y:d};
+		maze.beginPath();
+		maze.moveTo(c-24,d);
+		maze.lineTo(c+24,d);
+		maze.closePath();	
+		maze.lineWidth=2;
+		maze.strokeStyle = '#ffffff';
+		maze.stroke();	
+	}
+	}
+}
+function updateFrontier(x,y)
+{	
+	var a;
+	if(y == 25)
+	{
+		if (x == 25)
+		{
+			if(!check(x+50,y,coordinates) && !check(x+50,y,frontier))
+			{
+				
+				insertFrontier(x+50,y);
+				
+			}
+			if(!check(x,y+50,coordinates) && !check(x,y+50,frontier))
+			{
+				insertFrontier(x,y+50);
+			} 
+		}
+		else if (x == 475)
+		{
+			if(!check(x-50,y,coordinates) && !check(x-50,y,frontier))
+			{
+				
+				insertFrontier(x-50,y);
+			}
+			if(!check(x,y+50,coordinates) && !check(x,y+50,frontier))
+			{
+				insertFrontier(x,y+50);
+			}
+		}else
+		{
+			if(!check(x-50,y,coordinates) && !check(x-50,y,frontier))
+			{
+				
+				insertFrontier(x-50,y);
+			}
+			if(!check(x,y+50,coordinates) && !check(x,y+50,frontier))
+			{
+				insertFrontier(x,y+50);
+			}
+			if(!check(x+50,y,coordinates) && !check(x+50,y,frontier))
+			{
+				
+				insertFrontier(x+50,y);
+			}
+		}
+	}
+	else if (y == 475)
+	{
+		if (x == 25)
+		{
+			if(!check(x+50,y,coordinates) && !check(x+50,y,frontier))
+			{
+				
+				insertFrontier(x+50,y);
+			}
+			if(!check(x,y-50,coordinates) && !check(x,y-50,frontier))
+			{
+				insertFrontier(x,y-50);
+			}
+		}
+		else if (x == 475)
+		{
+			if(!check(x-50,y,coordinates) && !check(x-50,y,frontier))
+			{
+				
+				insertFrontier(x-50,y);
+			}
+			if(!check(x,y-50,coordinates) && !check(x,y-50,frontier))
+			{
+				insertFrontier(x,y-50);
+			}
+			
+		}else
+		{
+			if(!check(x-50,y,coordinates) && !check(x-50,y,frontier))
+			{
+				
+				insertFrontier(x-50,y);
+			}
+			if(!check(x,y-50,coordinates) && !check(x,y-50,frontier))
+			{
+				insertFrontier(x,y-50);
+			}
+			if(!check(x+50,y,coordinates) && !check(x+50,y,frontier))
+			{
+				
+				insertFrontier(x+50,y);
+			}
+		}
+	}
+	else if (x == 25)
+	{
+		if(!check(x,y-50,coordinates) && !check(x,y-50,frontier))
+			{
+				insertFrontier(x,y-50);
+			}
+		if(!check(x,y+50,coordinates) && !check(x,y+50,frontier))
+			{
+				insertFrontier(x,y+50);
+			}	
+		if(!check(x+50,y,coordinates) && !check(x+50,y,frontier))
+			{
+				
+				insertFrontier(x+50,y);
+			}
+	}
+	else if (x == 475)
+	{
+		if(!check(x,y-50,coordinates) && !check(x,y-50,frontier))
+			{
+				insertFrontier(x,y-50);
+			}
+		if(!check(x,y+50,coordinates) && !check(x,y+50,frontier))
+			{
+				insertFrontier(x,y+50);
+			}	
+		if(!check(x-50,y,coordinates) && !check(x-50,y,frontier))
+			{
+				
+				insertFrontier(x-50,y);
+			}
+	}else
+	{
+		if(!check(x,y-50,coordinates) && !check(x,y-50,frontier))
+			{
+				insertFrontier(x,y-50);
+			}
+		if(!check(x,y+50,coordinates) && !check(x,y+50,frontier))
+			{
+				insertFrontier(x,y+50);
+			}	
+		if(!check(x-50,y,coordinates) && !check(x-50,y,frontier))
+			{
+				
+				insertFrontier(x-50,y);
+			}
+		if(!check(x+50,y,coordinates) && !check(x+50,y,frontier))
+			{
+				
+				insertFrontier(x+50,y);
+			}
+	}
+	
+	
+}
+function check(x,y,z)
+{
+	var a = x.toString()+","+y.toString();
+	return a in z;
+}
+function insertFrontier(x,y)
+{
+	//circle(x,y);
+	var a = x.toString()+","+y.toString();
+	frontier[a] = {x:x,y:y};
+	frontierMap(a);
+}
+function frontierMap(x)
+{
+	
+	map1[frontierCount] = x;
+	frontierCount++;
+}
+function insertCoordinates(x,y)
+{	
+	var a = x.toString()+","+y.toString();
+	coordinates[a] = {x:x,y:y};
+	coordinateMap(a);
+}
+function coordinateMap(x)
+{
+	map[coordinatescount] = x;
+	coordinatescount++;
+}
+function drawGrid(canvas,x,y,z)
+{
+	canvas.beginPath();
+	canvas.moveTo(0,0);
+	canvas.lineTo(x,0);
+	canvas.lineTo(x,y);
+	canvas.lineTo(0,y);
+	canvas.lineTo(0,0);
+	canvas.closePath();
+	canvas.lineWidth=1;
+	canvas.stroke();
+	for (var i = blockSize ;i < gridWidth ; i = i + blockSize)
+	{
+		canvas.beginPath();
+		canvas.moveTo(i,0);
+		canvas.lineTo(i,gridHeight);
+		canvas.closePath();	
+		canvas.lineWidth=1;
+		canvas.strokeStyle = '#000000';
+		canvas.stroke();	
+	}
+	for (var i = blockSize ; i < gridHeight ; i = i + blockSize)
+	{
+		canvas.beginPath();
+		canvas.moveTo(0,i);
+		canvas.lineTo(gridWidth,i);
+		canvas.closePath();	
+		canvas.lineWidth=1;
+		canvas.strokeStyle = '#000000';
+		canvas.stroke();
+	}
+}
 </script>
+
 </body>
-<!--
-<script type="text/javascript">
-
-var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
-
-ws.on
-
-
-</script>
--->
+</html>

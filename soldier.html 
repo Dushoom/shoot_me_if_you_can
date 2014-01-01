@@ -1,0 +1,2 @@
+
+var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');

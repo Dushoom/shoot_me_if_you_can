@@ -1,6 +1,24 @@
 <body>
+<style type="text/css">
+	.stack {
+		height: 400px;
+		overflow: auto;
+		width: 200px;
+		float: left;
+		margin: 5px;
+		padding: 10px 0px 10px 10px;
+	}
+	.message {
+		background-color: #B2BFD1;
+		padding: 3px;
+	}
+	#arena {
+		float: left;
+	}
+</style>
 <canvas id ='arena' tabindex="1" width = '350' height = '350'></canvas>
 <span id ='test'></span>
+<div id="messagestack" class="stack"></div>
 <script type="text/javascript">
 var Canvas = document.getElementById('arena');
 Canvas.focus();
@@ -13,6 +31,16 @@ var canvas = Canvas.getContext('2d');
 var blackWidht = 1;
 var whiteWidht = 2;
 var soldier = new Object();
+var bulletSize = 0;
+var animation = null;
+var animateSoldier = null;
+var bullets = {};
+var current_position_x = 0;
+var next_position_x = 0;
+var current_position_y =0;
+var next_position_y = 0;0
+var nextStep = 5;
+soldier.canIMove = null;
 soldier.didICheckTheBattleGround = false;
 soldier.canIBattle = false;
 var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
@@ -29,25 +57,29 @@ var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
        		ws.send(JSON.stringify({'method':'play'}));
        	}
        }if (charStr == 'W'){
-       	if(soldier.didICheckTheBattleGround && soldier.canIBattle)
+       	if(soldier.didICheckTheBattleGround && soldier.canIBattle && soldier.canIMove)
        	{
+       		soldier.canIMove = false;
        		ws.send(JSON.stringify({'method':'moveTop'}));
        	}
        }if (charStr == 'D'){
-       	if(soldier.didICheckTheBattleGround && soldier.canIBattle)
+       	if(soldier.didICheckTheBattleGround && soldier.canIBattle && soldier.canIMove)
        	{
+       		soldier.canIMove = false;
        		ws.send(JSON.stringify({'method':'moveRight'}));
        	}
        }
        if (charStr == 'A'){
-       	if(soldier.didICheckTheBattleGround && soldier.canIBattle)
+       	if(soldier.didICheckTheBattleGround && soldier.canIBattle && soldier.canIMove)
        	{
+       		soldier.canIMove = false;
        		ws.send(JSON.stringify({'method':'moveLeft'}));
        	}
        }
        if (charStr == 'S'){
-       	if(soldier.didICheckTheBattleGround && soldier.canIBattle)
+       	if(soldier.didICheckTheBattleGround && soldier.canIBattle && soldier.canIMove)
        	{
+       		soldier.canIMove = false;
        		ws.send(JSON.stringify({'method':'moveDown'}));
        	}
        }
@@ -64,7 +96,7 @@ var ws = new WebSocket('ws://dushoom.com:1234','echo-protocol');
 	    }
        }
        if (charCode == 39){//right
-       	if(soldier.didICheckTheBattleGround && soldier.canIBattle)
+       	if(soldier.didICheckTheBattleGround && soldier.canIBattle )
        	{       	
        		ws.send(JSON.stringify({'method':'shootRight'}));
        	}
@@ -81,6 +113,18 @@ ws.addEventListener('message', function(e){
 
 	message = JSON.parse(e.data);
 	route(message);
+	console.log(message);
+
+	var msgStack = document.querySelectorAll('#messagestack');
+
+	msgStack = msgStack.length && msgStack[0];
+
+	var newMessage = document.createElement('div');
+	newMessage.className ='message';
+	newMessage.innerHTML = message.message;
+
+	msgStack.insertBefore(newMessage, msgStack.firstChild);
+
 })
 function route(message){
 
@@ -99,7 +143,10 @@ function route(message){
 	}
 	if(message.message == 'letTheBattleBegin')
 	{
+		bulletSize = message.bulletSize;
 		soldier.canIBattle = true;
+		animation = setInterval(function(){animateBullet()},50);
+		soldier.canIMove = true;
 	}
 	if (message.message == "playerPosition")
 	{
@@ -111,54 +158,90 @@ function route(message){
 	}
 	if (message.message =='playerMove')
 	{
-
-		updateBattlePlayerPositions(message);		
+		current_position_x = message.current_position_x;
+		current_position_y = message.current_position_y;
+		next_position_x = message.next_position_x; 
+		next_position_y = message.next_position_y;
+		animatePlayer = setInterval(function(){updateBattlePlayerPositions()},60);		
 	}
 	if (message.message == 'bulletInfo')
-	{
-		for (var i in message.bullets)
-		{
-			switch(message.bullets[i].type)
-			{
-				case 'right':
-					draw(canvas,5,0,message.bullets[i].previousPosition_x,message.bullets[i].previousPosition_y,white,whiteWidht);
-					draw(canvas,5,0,message.bullets[i].position_x,message.bullets[i].position_y,black,blackWidht);
-				break;
-				case 'left':
-					draw(canvas,-5,0,message.bullets[i].previousPosition_x,message.bullets[i].previousPosition_y,white,whiteWidht);
-					draw(canvas,-5,0,message.bullets[i].position_x,message.bullets[i].position_y,black,blackWidht);
-				break;
-				case 'top':
-					draw(canvas,0,-5,message.bullets[i].previousPosition_x,message.bullets[i].previousPosition_y,white,whiteWidht);
-					draw(canvas,0,-5,message.bullets[i].position_x,message.bullets[i].position_y,black,blackWidht);
-				break;
-				default:
-					draw(canvas,0,5,message.bullets[i].previousPosition_x,message.bullets[i].previousPosition_y,white,whiteWidht);
-					draw(canvas,0,5,message.bullets[i].position_x,message.bullets[i].position_y,black,blackWidht);
-			}
-		}
+	{	
+		bullets[message.bullet.key] = message.bullet;		
 	}
 }
-
-function updateBattlePlayerPositions(message)
-{
-
-	drawPlayer(canvas,message.current_position_x,message.current_position_y,16,white);
-	drawPlayer(canvas,message.next_position_x,message.next_position_y,15,red);
-	
+function animateBullet()
+{	
+	for (var i in bullets)
+		{
+			switch(bullets[i].type)
+			{
+				case 'right':
+				draw(canvas,5,0,bullets[i].previousPosition_x,bullets[i].previousPosition_y,white,whiteWidht);
+				if( bullets[i].position_x < 345)
+				{
+					draw(canvas,5,0,bullets[i].position_x,bullets[i].position_y,black,blackWidht);
+					bullets[i].previousPosition_x = bullets[i].position_x;
+         			bullets[i].position_x +=5;
+         		}
+				break;
+				case 'left':
+				draw(canvas,-5,0,bullets[i].previousPosition_x,bullets[i].previousPosition_y,white,whiteWidht);
+				if( bullets[i].position_x > 5)
+				{
+					draw(canvas,-5,0,bullets[i].position_x,bullets[i].position_y,black,blackWidht);
+					bullets[i].previousPosition_x = bullets[i].position_x;
+          			bullets[i].position_x -=5;
+          		}
+				break;
+				case 'top':
+				draw(canvas,0,-5,bullets[i].previousPosition_x,bullets[i].previousPosition_y,white,whiteWidht);
+				if( bullets[i].position_y > 5)
+				{
+					draw(canvas,0,-5,bullets[i].position_x,bullets[i].position_y,black,blackWidht);
+					bullets[i].previousPosition_y = bullets[i].position_y;
+          			bullets[i].position_y -=5;
+          		}
+          		break;
+				default:
+				draw(canvas,0,5,bullets[i].previousPosition_x,bullets[i].previousPosition_y,white,whiteWidht);
+				if( bullets[i].position_y < 345)
+				{
+					draw(canvas,0,5,bullets[i].position_x,bullets[i].position_y,black,blackWidht);
+					bullets[i].previousPosition_y = bullets[i].position_y;
+          			bullets[i].position_y +=5;
+          		}
+			}
+		}
 }
-function animateCircle()
+function updateBattlePlayerPositions()
 {
-	
+	if(current_position_x != next_position_x ||  current_position_y != next_position_y)
+	{
+		drawPlayer(canvas,current_position_x,current_position_y,16,white);
+		
+		if(current_position_x == next_position_x)
+		{
+			current_position_y += nextStep;
+		}
+		else
+		{
+			current_position_x +=	nextStep;
+		}
+		drawPlayer(canvas,current_position_x,current_position_y,15,red);
+	}
+	else
+	{
+		//alert(current_position_x+next_position_x);
+		clearInterval(animatePlayer);
+		soldier.canIMove = true;
+	}	
 }
 function updateArena(message)
 {
-	
 	drawPlayer(canvas,message.position_x,message.position_y,15,red);
 }
 function playerPosition(message)
 {
-	document.getElementById('test').innerHTML = message.position_x;
 	drawPlayer(canvas,message.position_x,message.position_y,15,red);
 }
 function createArena(message)

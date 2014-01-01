@@ -1,0 +1,41 @@
+<body>
+	<canvas id ='arena'></canvas>
+	<span id = 'message'></span>
+	<script type="text/javascript">
+		var arenaId = null;
+		var soldierId = null;
+		var ether = new WebSocket('ws://dushoom.com:1234','echo-protocol');	
+
+		ether.addEventListener('open', function (){
+			/*var message = JSON.stringify({'message':'ping'});
+			ether.send(message);
+			console.log(message);*/
+		})
+
+		ether.addEventListener('message',function (move) {
+			message = JSON.parse(move.data);
+			//document.getElementById('message').innerHTML = message;
+			
+			handle_message(message);
+			
+		});
+		function handle_message(message)
+		{
+			switch(message.message)
+			{
+				case 'JTA':
+				arenaId = message.AID;
+				soldierId = message.SID;
+				break;
+				case 'ping':
+				var message = JSON.stringify({'message':'ping','AID':arenaId,'SID':soldierId});
+				console.log(message);
+				ether.send(message);
+				break;
+				default:
+
+			}
+
+		}
+	</script>
+<body>
