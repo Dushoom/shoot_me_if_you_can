@@ -29,11 +29,12 @@
 				break;
 				case 'ping':
 				var message = JSON.stringify({'message':'ping','AID':arenaId,'SID':soldierId});
-				console.log(message);
 				ether.send(message);
 				break;
+				case 'lag' :
+				document.getElementById('message').innerHTML = message.value+"ms";
+				break;
 				default:
-
 			}
 
 		}

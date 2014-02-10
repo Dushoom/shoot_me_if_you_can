@@ -7,6 +7,8 @@ BattleGround.isReadytoBattle = false;
 BattleGround.noOfBattleArenas = 0;
 BattleGround.battleArenas = {};
 BattleGround.timer = null;
+BattleGround.ping = null;
+BattleGround.maximumArenas = 4;
 BattleGround.maxSoldiersPerBattleArena = 4;
 BattleGround.build = Kingdom.createServer(function(request,response) {
  });
@@ -16,7 +18,8 @@ BattleGround.build = Kingdom.createServer(function(request,response) {
 		BattleGround.isReadytoBattle = true;
 		createBattleArena(++BattleGround.noOfBattleArenas);
 	}
- BattleGround.timer = setInterval(function(){sendPingRequests()},2000);
+ BattleGround.timer = setInterval(function(){sendPingRequests()},1000);
+ BattleGround.ping = setInterval(function(){updateBattleGroundPing()},1000);
  console.log('BattleGround has created .....');
  });
 var ether = require('websocket').server;
@@ -37,18 +40,26 @@ function createBattleArena(Id)
 	var Arena = new BattleArena();
 	Arena.location = Id;
 	BattleGround.battleArenas[Id]= Arena;
+	arenaPositions(Arena.soldierPositions);
 }
 
 function BattleArena()
 {
 	this.soldiers = {};
-	this.location = null
+	this.location = null;
 	this.soldierCount = null;
+	this.soldierPositions = new data_structure_linked_list();
 }
 
-function arenaPositions()
+function arenaPositions(soldierPositions)
 {
-
+	for(i = 0 ; i < BattleGround.maxSoldiersPerBattleArena; i++)
+	{
+		var position = new Object();
+		position.next = null;
+		position.value =BattleGround.maxSoldiersPerBattleArena -i;
+		soldierPositions.push(position);
+	}
 }
 /*
 	BattleArena Area
@@ -67,14 +78,7 @@ function sendPingRequests()
 		}
 	}
 }
-function calculatePing(x,y,a,b)
-{
-	return ((b*a) + (y-x))/(a+1);
-}
-function updateBattleGroundPing()
-{
 
-}
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
 /*
@@ -82,16 +86,23 @@ function updateBattleGroundPing()
 */
 function enterTheSoldier(bond)
 {
-	if(BattleGround.battleArenas[BattleGround.noOfBattleArenas].soldierCount <= BattleGround.maxSoldiersPerBattleArena)
+
+	switch(BattleGround.battleArenas[BattleGround.noOfBattleArenas].soldierCount)
 	{
+		case BattleGround.maxSoldiersPerBattleArena:
+		createBattleArena(++BattleGround.noOfBattleArenas);
+		break;
+	}
+		var arena = BattleGround.battleArenas[BattleGround.noOfBattleArenas];
 		console.log("Joining a Soldier");
 		var sniper = new soldier(bond);
 		sniper.arenaId = BattleGround.noOfBattleArenas;
-		sniper.soldierId = ++BattleGround.battleArenas[BattleGround.noOfBattleArenas].soldierCount;
-		BattleGround.battleArenas[BattleGround.noOfBattleArenas].soldiers[sniper.soldierId] = sniper;
+		++arena.soldierCount;
+		sniper.soldierId = arena.soldierPositions.pop().value;
+		console.log(sniper.soldierId);
+		arena.soldiers[sniper.soldierId] = sniper;
 		var message = JSON.stringify({'message':'JTA','AID':sniper.arenaId,'SID':sniper.soldierId});
 		bond.send(message);
-	}
 }
 
 function soldier(bond)
@@ -129,6 +140,22 @@ function convert(x,y)
 {
   return x.toString()+","+y.toString();
 }
+
+function calculatePing(x,y,a,b)
+{
+	return ((b*a) + (y-x))/(a+1);
+}
+function updateBattleGroundPing()
+{
+	for(var i in BattleGround.battleArenas)
+	{
+		for(var j in BattleGround.battleArenas[i].soldiers)
+		{
+			var soldier = BattleGround.battleArenas[i].soldiers[j];
+			console.log(soldier.soldierId+":"+soldier.updatedPing);
+		}
+	}
+}
 /*
 	Helper Functions
 */
@@ -145,8 +172,10 @@ function message_handling(message){
 	switch(message.message)
 	{
 		case 'ping':
-		BattleGround.battleArenas[message.AID].soldiers[message.SID].pingReceivedTime = new Date().getTime();
-		console.log(BattleGround.battleArenas[message.AID].soldiers[message.SID].pingReceivedTime-BattleGround.battleArenas[message.AID].soldiers[message.SID].pingInitiatedTime);
+		var soldier = BattleGround.battleArenas[message.AID].soldiers[message.SID]
+		soldier.pingReceivedTime = new Date().getTime();
+		soldier.updatedPing = soldier.pingReceivedTime - soldier.pingInitiatedTime;
+		soldier.bond.send(JSON.stringify({'message':'lag','value':soldier.updatedPing});
 	}
 
 }
@@ -157,3 +186,39 @@ function message_handling(message){
 
 ///////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////
+
+/*
+	Data_Structures
+*/
+function data_structure_linked_list()
+{
+	this.head = null;
+	this.push = function (position)
+	{
+		switch(this.head)
+		{
+			case null:
+			this.head = position;
+			break;
+			default:
+			position.next = this.head;
+			this.head = position;
+		}
+	}
+	this.pop = function ()
+	{
+		var position = null;
+		switch(this.head)
+		{
+			case null:
+			break;
+			default:
+			position = this.head;
+			this.head = this.head.next;
+		}
+		return position;
+	}
+}
+/*
+	Data_Structures
+*/
