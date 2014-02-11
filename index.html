@@ -30,19 +30,28 @@
 <canvas class = "maze" tabindex="1" id = "maze"></canvas>
 <script>
 
+
 function grid()
 {
-
+	this.gridWidth = null;
+	this.gridHeight = null;
+	this.blockSize = null;
+	this.playerRadius = null;
+	this.whiteRadius = null;
 }
+
 canvas = document.getElementById('maze');
 canvas.focus();
 maze = canvas.getContext('2d');
 canvas.width = 500;
 canvas.height = 500;
 
-var gridWidth = canvas.width;
-var gridHeight = canvas.height;
-var blockSize = 50;
+game = new grid();
+game.gridWidth = canvas.width;
+game.gridHeight = canvas.height;
+game.blockSize = 50;
+game.playerRadius = 15;
+game.whiteRadius =16;	
 var map = {};
 var map1 = {};
 var coordinates = {};
@@ -55,26 +64,25 @@ var red = '#FF0000';
 var white = '#FFFFFF';
 var black = '000000';
 var blue ='#0000FF';
-var playerRadius = 15;
-var whiteRadius =16;
+
 var alienRadius = 10;
 var alienCount =0;
 var numberOfThreeEdgedPoints = 0;
 var numberOfTwoEdgedPoints =0 ;
 var distanceFromSideToCentre = 25;
-var total = (gridWidth/blockSize) * (gridHeight/blockSize);
-drawGrid(maze,gridWidth,gridHeight,blockSize);
+var total = (game.gridWidth/game.blockSize) * (game.gridHeight/game.blockSize);
+drawGrid(maze,game.gridWidth,game.gridHeight,game.blockSize);
 createMaze();
 var Player1 = new Object();
 Player1.centreX = distanceFromSideToCentre;
 Player1.centreY = distanceFromSideToCentre;
 Player1.score = 0;
-circle (Player1.centreX,Player1.centreY,red,playerRadius);
+circle (Player1.centreX,Player1.centreY,red,game.playerRadius);
 var Player2 = new Object();
-Player2.centreX = gridWidth - distanceFromSideToCentre;
+Player2.centreX = game.gridWidth - distanceFromSideToCentre;
 Player2.centreY = distanceFromSideToCentre;
 Player2.score = 0;
-circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+circle (Player2.centreX,Player2.centreY,blue,game.playerRadius);
 noOfTwoAndThreeEdgedPoints();
 
 score.innerHTML = numberOfThreeEdgedPoints;
@@ -91,9 +99,9 @@ canvas.onkeypress = function(evt){
         	
        if( c in points)
        	{
-       	 	circle (Player1.centreX,Player1.centreY,white,whiteRadius);
-       	 	Player1.centreY = Player1.centreY+blockSize;
-       	 	circle (Player1.centreX,Player1.centreY,red,playerRadius);
+       	 	circle (Player1.centreX,Player1.centreY,white,game.whiteRadius);
+       	 	Player1.centreY = Player1.centreY+game.blockSize;
+       	 	circle (Player1.centreX,Player1.centreY,red,game.playerRadius);
        	 	if(check(Player1.centreX,Player1.centreY,aliens))
        	 	{
        	 			delete aliens[convert(Player1.centreX,Player1.centreY)];
@@ -111,9 +119,9 @@ canvas.onkeypress = function(evt){
         
        if( c in points)
        	{
-       	 	circle (Player1.centreX,Player1.centreY,white,whiteRadius);
-       	 	Player1.centreX = Player1.centreX-blockSize;
-       	 	circle (Player1.centreX,Player1.centreY,red,playerRadius);
+       	 	circle (Player1.centreX,Player1.centreY,white,game.whiteRadius);
+       	 	Player1.centreX = Player1.centreX-game.blockSize;
+       	 	circle (Player1.centreX,Player1.centreY,red,game.playerRadius);
        	 	if(check(Player1.centreX,Player1.centreY,aliens))
        	 	{
        	 			delete aliens[convert(Player1.centreX,Player1.centreY)];
@@ -131,9 +139,9 @@ canvas.onkeypress = function(evt){
         
        if( c in points)
        	{
-       	 	circle (Player1.centreX,Player1.centreY,white,whiteRadius);
-       	 	Player1.centreX = Player1.centreX+blockSize;
-       	 	circle (Player1.centreX,Player1.centreY,red,playerRadius);
+       	 	circle (Player1.centreX,Player1.centreY,white,game.whiteRadius);
+       	 	Player1.centreX = Player1.centreX+game.blockSize;
+       	 	circle (Player1.centreX,Player1.centreY,red,game.playerRadius);
        	 	if(check(Player1.centreX,Player1.centreY,aliens))
        	 	{
        	 			delete aliens[convert(Player1.centreX,Player1.centreY)];
@@ -151,9 +159,9 @@ canvas.onkeypress = function(evt){
         
        if( c in points)
        	{
-       	 	circle (Player1.centreX,Player1.centreY,white,whiteRadius);
-       	 	Player1.centreY = Player1.centreY-blockSize;
-       	 	circle (Player1.centreX,Player1.centreY,red,playerRadius);
+       	 	circle (Player1.centreX,Player1.centreY,white,game.whiteRadius);
+       	 	Player1.centreY = Player1.centreY-game.blockSize;
+       	 	circle (Player1.centreX,Player1.centreY,red,game.playerRadius);
        	 	if(check(Player1.centreX,Player1.centreY,aliens))
        	 	{
        	 			delete aliens[convert(Player1.centreX,Player1.centreY)];
@@ -171,9 +179,9 @@ canvas.onkeypress = function(evt){
         
        if( c in points)
        	{
-       	 	circle (Player2.centreX,Player2.centreY,white,whiteRadius);
-       	 	Player2.centreX = Player2.centreX-blockSize;
-       	 	circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+       	 	circle (Player2.centreX,Player2.centreY,white,game.whiteRadius);
+       	 	Player2.centreX = Player2.centreX-game.blockSize;
+       	 	circle (Player2.centreX,Player2.centreY,blue,game.playerRadius);
        	 	if(check(Player2.centreX,Player2.centreY,aliens))
        	 	{
        	 			delete aliens[convert(Player2.centreX,Player2.centreY)];
@@ -192,9 +200,9 @@ canvas.onkeypress = function(evt){
         	
        if( c in points)
        	{
-       	 	circle (Player2.centreX,Player2.centreY,white,whiteRadius);
-       	 	Player2.centreY = Player2.centreY+blockSize;
-       	 	circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+       	 	circle (Player2.centreX,Player2.centreY,white,game.whiteRadius);
+       	 	Player2.centreY = Player2.centreY+game.blockSize;
+       	 	circle (Player2.centreX,Player2.centreY,blue,game.playerRadius);
        	 	if(check(Player2.centreX,Player2.centreY,aliens))
        	 	{
        	 			delete aliens[convert(Player2.centreX,Player2.centreY)];
@@ -212,9 +220,9 @@ canvas.onkeypress = function(evt){
         
        if( c in points)
        	{
-       	 	circle (Player2.centreX,Player2.centreY,white,whiteRadius);
-       	 	Player2.centreY = Player2.centreY-blockSize;
-       	 	circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+       	 	circle (Player2.centreX,Player2.centreY,white,game.whiteRadius);
+       	 	Player2.centreY = Player2.centreY-game.blockSize;
+       	 	circle (Player2.centreX,Player2.centreY,blue,game.playerRadius);
        	 	if(check(Player2.centreX,Player2.centreY,aliens))
        	 	{
        	 			delete aliens[convert(Player2.centreX,Player2.centreY)];
@@ -232,9 +240,9 @@ canvas.onkeypress = function(evt){
         
        if( c in points)
        	{
-       	 	circle (Player2.centreX,Player2.centreY,white,whiteRadius);
-       	 	Player2.centreX = Player2.centreX+blockSize;
-       	 	circle (Player2.centreX,Player2.centreY,blue,playerRadius);
+       	 	circle (Player2.centreX,Player2.centreY,white,game.whiteRadius);
+       	 	Player2.centreX = Player2.centreX+game.blockSize;
+       	 	circle (Player2.centreX,Player2.centreY,blue,game.playerRadius);
        	 	if(check(Player2.centreX,Player2.centreY,aliens))
        	 	{
        	 			delete aliens[convert(Player2.centreX,Player2.centreY)];
@@ -254,14 +262,14 @@ canvas.onkeypress = function(evt){
 };
 function noOfTwoAndThreeEdgedPoints()
 {
-	for (var i = distanceFromSideToCentre ;i <= gridWidth - distanceFromSideToCentre ; i = i+blockSize)
+	for (var i = distanceFromSideToCentre ;i <= game.gridWidth - distanceFromSideToCentre ; i = i+game.blockSize)
 	{		
-		for(var j = distanceFromSideToCentre; j <= gridHeight - distanceFromSideToCentre ; j = j+blockSize)
+		for(var j = distanceFromSideToCentre; j <= game.gridHeight - distanceFromSideToCentre ; j = j+game.blockSize)
 		{
 			if( ( !check(i+distanceFromSideToCentre,j,points) || !check(i,j-distanceFromSideToCentre,points) ) && ( !check(i-distanceFromSideToCentre,j,points) && !check(i,j+distanceFromSideToCentre,points)) ||  (( !check(i+distanceFromSideToCentre,j,points) && !check(i,j-distanceFromSideToCentre,points)) && ( 	!check(i-distanceFromSideToCentre,j,points) || !check (i,j+distanceFromSideToCentre,points)))) 
 			{
 				
-				if((i != distanceFromSideToCentre || j!= distanceFromSideToCentre) && (i!=gridWidth -distanceFromSideToCentre || j!=distanceFromSideToCentre))					
+				if((i != distanceFromSideToCentre || j!= distanceFromSideToCentre) && (i!=game.gridWidth -distanceFromSideToCentre || j!=distanceFromSideToCentre))					
 				{
 					circle(i,j,black,alienRadius);
 					alienCount++;				
@@ -280,8 +288,8 @@ function createMaze()
 	var b;
 	var c;
 	var a;
-	var randomX = blockSize*Math.floor(Math.random()*10)+distanceFromSideToCentre;
-	var randomY = blockSize*Math.floor(Math.random()*10)+distanceFromSideToCentre; 
+	var randomX = game.blockSize*Math.floor(Math.random()*10)+distanceFromSideToCentre;
+	var randomY = game.blockSize*Math.floor(Math.random()*10)+distanceFromSideToCentre; 
 	insertCoordinates(randomX,randomY);
 	updateFrontier(randomX,randomY);
 	while (frontierCount != 0)
@@ -325,25 +333,25 @@ function noName(x)
 function getCoordinate(x)
 {
 	
-	if (x.x !=distanceFromSideToCentre && check(x.x - blockSize,x.y,coordinates))
+	if (x.x !=distanceFromSideToCentre && check(x.x - game.blockSize,x.y,coordinates))
 	{
 		
-		return coordinates[(x.x-blockSize).toString()+","+x.y.toString()]
+		return coordinates[(x.x-game.blockSize).toString()+","+x.y.toString()]
 	}
-	if (x.x != gridWidth - distanceFromSideToCentre && check(x.x + blockSize,x.y,coordinates))
+	if (x.x != game.gridWidth - distanceFromSideToCentre && check(x.x + game.blockSize,x.y,coordinates))
 	{
 		
-		return coordinates[(x.x+blockSize).toString()+","+x.y.toString()]
+		return coordinates[(x.x+game.blockSize).toString()+","+x.y.toString()]
 	}
-	if (x.y !=distanceFromSideToCentre && check(x.x,(x.y - blockSize),coordinates))
+	if (x.y !=distanceFromSideToCentre && check(x.x,(x.y - game.blockSize),coordinates))
 	{
 		
-		return coordinates[(x.x).toString()+","+(x.y-blockSize).toString()]
+		return coordinates[(x.x).toString()+","+(x.y-game.blockSize).toString()]
 	} 
-	if (x.y !=gridWidth -distanceFromSideToCentre && check(x.x,(x.y + blockSize),coordinates))
+	if (x.y !=game.gridWidth -distanceFromSideToCentre && check(x.x,(x.y + game.blockSize),coordinates))
 	{
 		
-		return coordinates[(x.x).toString()+","+(x.y+blockSize).toString()]
+		return coordinates[(x.x).toString()+","+(x.y+game.blockSize).toString()]
 	}
 
 }
@@ -416,140 +424,140 @@ function updateFrontier(x,y)
 	{
 		if (x == distanceFromSideToCentre)
 		{
-			if(!check(x+blockSize,y,coordinates) && !check(x+blockSize,y,frontier))
+			if(!check(x+game.blockSize,y,coordinates) && !check(x+game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x+blockSize,y);
+				insertFrontier(x+game.blockSize,y);
 				
 			}
-			if(!check(x,y+blockSize,coordinates) && !check(x,y+blockSize,frontier))
+			if(!check(x,y+game.blockSize,coordinates) && !check(x,y+game.blockSize,frontier))
 			{
-				insertFrontier(x,y+blockSize);
+				insertFrontier(x,y+game.blockSize);
 			} 
 		}
-		else if (x == gridWidth -distanceFromSideToCentre)
+		else if (x == game.gridWidth -distanceFromSideToCentre)
 		{
-			if(!check(x-blockSize,y,coordinates) && !check(x-blockSize,y,frontier))
+			if(!check(x-game.blockSize,y,coordinates) && !check(x-game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x-blockSize,y);
+				insertFrontier(x-game.blockSize,y);
 			}
-			if(!check(x,y+blockSize,coordinates) && !check(x,y+blockSize,frontier))
+			if(!check(x,y+game.blockSize,coordinates) && !check(x,y+game.blockSize,frontier))
 			{
-				insertFrontier(x,y+blockSize);
+				insertFrontier(x,y+game.blockSize);
 			}
 		}else
 		{
-			if(!check(x-blockSize,y,coordinates) && !check(x-blockSize,y,frontier))
+			if(!check(x-game.blockSize,y,coordinates) && !check(x-game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x-blockSize,y);
+				insertFrontier(x-game.blockSize,y);
 			}
-			if(!check(x,y+blockSize,coordinates) && !check(x,y+blockSize,frontier))
+			if(!check(x,y+game.blockSize,coordinates) && !check(x,y+game.blockSize,frontier))
 			{
-				insertFrontier(x,y+blockSize);
+				insertFrontier(x,y+game.blockSize);
 			}
-			if(!check(x+blockSize,y,coordinates) && !check(x+blockSize,y,frontier))
+			if(!check(x+game.blockSize,y,coordinates) && !check(x+game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x+blockSize,y);
+				insertFrontier(x+game.blockSize,y);
 			}
 		}
 	}
-	else if (y == gridHeight -distanceFromSideToCentre)
+	else if (y == game.gridHeight -distanceFromSideToCentre)
 	{
 		if (x == distanceFromSideToCentre)
 		{
-			if(!check(x+blockSize,y,coordinates) && !check(x+blockSize,y,frontier))
+			if(!check(x+game.blockSize,y,coordinates) && !check(x+game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x+blockSize,y);
+				insertFrontier(x+game.blockSize,y);
 			}
-			if(!check(x,y-blockSize,coordinates) && !check(x,y-blockSize,frontier))
+			if(!check(x,y-game.blockSize,coordinates) && !check(x,y-game.blockSize,frontier))
 			{
-				insertFrontier(x,y-blockSize);
+				insertFrontier(x,y-game.blockSize);
 			}
 		}
-		else if (x == gridWidth - distanceFromSideToCentre)
+		else if (x == game.gridWidth - distanceFromSideToCentre)
 		{
-			if(!check(x-blockSize,y,coordinates) && !check(x-blockSize,y,frontier))
+			if(!check(x-game.blockSize,y,coordinates) && !check(x-game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x-blockSize,y);
+				insertFrontier(x-game.blockSize,y);
 			}
-			if(!check(x,y-blockSize,coordinates) && !check(x,y-blockSize,frontier))
+			if(!check(x,y-game.blockSize,coordinates) && !check(x,y-game.blockSize,frontier))
 			{
-				insertFrontier(x,y-blockSize);
+				insertFrontier(x,y-game.blockSize);
 			}
 			
 		}else
 		{
-			if(!check(x-blockSize,y,coordinates) && !check(x-blockSize,y,frontier))
+			if(!check(x-game.blockSize,y,coordinates) && !check(x-game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x-blockSize,y);
+				insertFrontier(x-game.blockSize,y);
 			}
-			if(!check(x,y-blockSize,coordinates) && !check(x,y-blockSize,frontier))
+			if(!check(x,y-game.blockSize,coordinates) && !check(x,y-game.blockSize,frontier))
 			{
-				insertFrontier(x,y-blockSize);
+				insertFrontier(x,y-game.blockSize);
 			}
-			if(!check(x+blockSize,y,coordinates) && !check(x+blockSize,y,frontier))
+			if(!check(x+game.blockSize,y,coordinates) && !check(x+game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x+blockSize,y);
+				insertFrontier(x+game.blockSize,y);
 			}
 		}
 	}
 	else if (x == distanceFromSideToCentre)
 	{
-		if(!check(x,y-blockSize,coordinates) && !check(x,y-blockSize,frontier))
+		if(!check(x,y-game.blockSize,coordinates) && !check(x,y-game.blockSize,frontier))
 			{
-				insertFrontier(x,y-blockSize);
+				insertFrontier(x,y-game.blockSize);
 			}
-		if(!check(x,y+blockSize,coordinates) && !check(x,y+blockSize,frontier))
+		if(!check(x,y+game.blockSize,coordinates) && !check(x,y+game.blockSize,frontier))
 			{
-				insertFrontier(x,y+blockSize);
+				insertFrontier(x,y+game.blockSize);
 			}	
-		if(!check(x+blockSize,y,coordinates) && !check(x+blockSize,y,frontier))
+		if(!check(x+game.blockSize,y,coordinates) && !check(x+game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x+blockSize,y);
+				insertFrontier(x+game.blockSize,y);
 			}
 	}
-	else if (x == gridWidth - distanceFromSideToCentre)
+	else if (x == game.gridWidth - distanceFromSideToCentre)
 	{
-		if(!check(x,y-blockSize,coordinates) && !check(x,y-blockSize,frontier))
+		if(!check(x,y-game.blockSize,coordinates) && !check(x,y-game.blockSize,frontier))
 			{
-				insertFrontier(x,y-blockSize);
+				insertFrontier(x,y-game.blockSize);
 			}
-		if(!check(x,y+blockSize,coordinates) && !check(x,y+blockSize,frontier))
+		if(!check(x,y+game.blockSize,coordinates) && !check(x,y+game.blockSize,frontier))
 			{
-				insertFrontier(x,y+blockSize);
+				insertFrontier(x,y+game.blockSize);
 			}	
-		if(!check(x-blockSize,y,coordinates) && !check(x-blockSize,y,frontier))
+		if(!check(x-game.blockSize,y,coordinates) && !check(x-game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x-blockSize,y);
+				insertFrontier(x-game.blockSize,y);
 			}
 	}else
 	{
-		if(!check(x,y-blockSize,coordinates) && !check(x,y-blockSize,frontier))
+		if(!check(x,y-game.blockSize,coordinates) && !check(x,y-game.blockSize,frontier))
 			{
-				insertFrontier(x,y-blockSize);
+				insertFrontier(x,y-game.blockSize);
 			}
-		if(!check(x,y+blockSize,coordinates) && !check(x,y+blockSize,frontier))
+		if(!check(x,y+game.blockSize,coordinates) && !check(x,y+game.blockSize,frontier))
 			{
-				insertFrontier(x,y+blockSize);
+				insertFrontier(x,y+game.blockSize);
 			}	
-		if(!check(x-blockSize,y,coordinates) && !check(x-blockSize,y,frontier))
+		if(!check(x-game.blockSize,y,coordinates) && !check(x-game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x-blockSize,y);
+				insertFrontier(x-game.blockSize,y);
 			}
-		if(!check(x+blockSize,y,coordinates) && !check(x+blockSize,y,frontier))
+		if(!check(x+game.blockSize,y,coordinates) && !check(x+game.blockSize,y,frontier))
 			{
 				
-				insertFrontier(x+blockSize,y);
+				insertFrontier(x+game.blockSize,y);
 			}
 	}
 	
@@ -593,21 +601,21 @@ function drawGrid(canvas,x,y,z)
 	canvas.closePath();
 	canvas.lineWidth=1;
 	canvas.stroke();
-	for (var i = blockSize ;i < gridWidth ; i = i + blockSize)
+	for (var i = game.blockSize ;i < game.gridWidth ; i = i + game.blockSize)
 	{
 		canvas.beginPath();
 		canvas.moveTo(i,0);
-		canvas.lineTo(i,gridHeight);
+		canvas.lineTo(i,game.gridHeight);
 		canvas.closePath();	
 		canvas.lineWidth=1;
 		canvas.strokeStyle = '#000000';
 		canvas.stroke();	
 	}
-	for (var i = blockSize ; i < gridHeight ; i = i + blockSize)
+	for (var i = game.blockSize ; i < game.gridHeight ; i = i + game.blockSize)
 	{
 		canvas.beginPath();
 		canvas.moveTo(0,i);
-		canvas.lineTo(gridWidth,i);
+		canvas.lineTo(game.gridWidth,i);
 		canvas.closePath();	
 		canvas.lineWidth=1;
 		canvas.strokeStyle = '#000000';
